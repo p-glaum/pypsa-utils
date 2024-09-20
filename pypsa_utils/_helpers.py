@@ -1,4 +1,3 @@
-
 def rename_techs_balances(tech):
     tech = rename_techs(tech)
     if "heat pump" in tech:

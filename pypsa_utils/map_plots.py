@@ -1,22 +1,21 @@
-#%%
-import pypsa
-from pypsa.statistics import get_transmission_branches, get_transmission_carriers
-from pypsa.plot import add_legend_semicircles, add_legend_lines, add_legend_patches
-import numpy as np
+# %%
+import matplotlib as mpl
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
-from cartopy import crs as ccrs
+import numpy as np
+import pandas as pd
+import pypsa
+from pypsa.plot import add_legend_semicircles
+from pypsa.statistics import get_transmission_branches, get_transmission_carriers
+
 from pypsa_utils.helper import rename_techs
-import yaml
-#%%
-config = yaml.safe_load(open("config.yaml"))
-tech_colors = config["plotting"]["tech_colors"]
-crs = ccrs.EqualEarth()
-fig, ax = plt.subplots(figsize=figsize, subplot_kw={"projection": crs})
-plot_carrier_map(network, ax, tech_colors, bus_carrier)
 
-#%%
+# %%
 
-def plot_carrier_map(ax, n, bus_carrier, tech_colors, branch_threshold=3e2, bus_threshold=1e6, flow=False):
+
+def plot_carrier_map(
+    ax, n, bus_carrier, tech_colors, branch_threshold=3e2, bus_threshold=1e6, flow=False
+):
     n = n.copy()
     n.buses.x = n.buses.location.map(n.buses.x)
     n.buses.y = n.buses.location.map(n.buses.y)
@@ -24,7 +23,9 @@ def plot_carrier_map(ax, n, bus_carrier, tech_colors, branch_threshold=3e2, bus_
     # bus sizes according to supply and demand
     s = n.statistics
     g = s.groupers
-    df = s.energy_balance(nice_names=False, bus_carrier=bus_carrier, groupby=g.get_bus_and_carrier)
+    df = s.energy_balance(
+        nice_names=False, bus_carrier=bus_carrier, groupby=g.get_bus_and_carrier
+    )
     transmission_carriers = get_transmission_carriers(n, bus_carrier=bus_carrier)
     df.drop(transmission_carriers, inplace=True)
     bus_sizes = (
@@ -90,7 +91,9 @@ def plot_carrier_map(ax, n, bus_carrier, tech_colors, branch_threshold=3e2, bus_
     optimal_branch_capacity = optimal_branch_capacity[
         ~optimal_branch_capacity.index.get_level_values("name").str.contains("reversed")
     ]
-    optimal_branch_capacity = optimal_branch_capacity[optimal_branch_capacity > branch_threshold]
+    optimal_branch_capacity = optimal_branch_capacity[
+        optimal_branch_capacity > branch_threshold
+    ]
     line_width = (
         optimal_branch_capacity.Line
         if "Line" in optimal_branch_capacity.index.get_level_values("component")
@@ -106,7 +109,9 @@ def plot_carrier_map(ax, n, bus_carrier, tech_colors, branch_threshold=3e2, bus_
     if flow:
         # flow according to net transmission
         flow = n.statistics.transmission(groupby=False, bus_carrier=bus_carrier)
-        flow_reversed_mask = flow.index.get_level_values("name").str.contains("reversed")
+        flow_reversed_mask = flow.index.get_level_values("name").str.contains(
+            "reversed"
+        )
         flow_reversed = flow[flow_reversed_mask].rename(
             lambda x: x.replace("-reversed", "")
         )
@@ -154,7 +159,7 @@ def plot_carrier_map(ax, n, bus_carrier, tech_colors, branch_threshold=3e2, bus_
             ax.collections[3].set_fc(ARROW_COLOR)
             ax.collections[3].set_linewidth(0)
 
-        cbar = plt.colorbar(
+        plt.colorbar(
             sm,
             location="right",
             orientation="vertical",
@@ -215,4 +220,6 @@ def plot_carrier_map(ax, n, bus_carrier, tech_colors, branch_threshold=3e2, bus_
             bbox_to_anchor=(0.5, 0), loc="upper center", ncol=3, borderpad=0
         ),
     )
+
+
 # %%

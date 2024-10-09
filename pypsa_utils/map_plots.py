@@ -8,7 +8,7 @@ import pypsa
 from pypsa.plot import add_legend_semicircles
 from pypsa.statistics import get_transmission_branches, get_transmission_carriers
 
-from pypsa_utils.helper import rename_techs
+from pypsa_utils._helpers import rename_techs
 
 # %%
 
